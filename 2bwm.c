@@ -1976,13 +1976,29 @@ setborders(struct client *client,const bool isitfocused)
 		}
 	};
 
+	xcb_get_geometry_cookie_t geom_cookie 
+		= xcb_get_geometry(conn, client->id);
+    xcb_get_geometry_reply_t* geom
+    	= xcb_get_geometry_reply(conn, geom_cookie, NULL);
+    uint8_t client_depth = geom->depth;
+    free(geom);	
+
 	xcb_pixmap_t pmap = xcb_generate_id(conn);
+
+#if 0
 	/* my test have shown that drawing the pixmap directly on the root
 	 * window is faster then drawing it on the window directly */
 	xcb_create_pixmap(conn, screen->root_depth, pmap, screen->root,
 			client->width + (conf.borderwidth * 2),
 			client->height + (conf.borderwidth * 2)
 	);
+#endif
+#if 1
+	xcb_create_pixmap(conn, client_depth, pmap, screen->root,
+			client->width + (conf.borderwidth * 2),
+			client->height + (conf.borderwidth * 2)
+	);
+#endif
 
 	xcb_gcontext_t gc = xcb_generate_id(conn);
 	xcb_create_gc(conn, gc, pmap, 0, NULL);
